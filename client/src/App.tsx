@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
 import { initGA } from "./lib/analytics";
 import { useAnalytics } from "./hooks/use-analytics";
+import { GameProvider } from "./contexts/GameContext";
 import Home from "@/pages/home";
 import NotFound from "@/pages/not-found";
 import LoadingScreen from "@/components/ui/loading-screen";
@@ -40,19 +41,21 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        {/* Global UI Components */}
-        <LoadingScreen />
-        <CustomCursor />
-        <ScrollIndicator />
-        <ThemeSwitcher />
-        <VoiceNavigation />
-        <ChatbotWidget />
-        
-        {/* Main Application */}
-        <Router />
-        <Toaster />
-      </TooltipProvider>
+      <GameProvider>
+        <TooltipProvider>
+          {/* Global UI Components */}
+          <LoadingScreen />
+          <CustomCursor />
+          <ScrollIndicator />
+          <ThemeSwitcher />
+          <VoiceNavigation />
+          <ChatbotWidget />
+          
+          {/* Main Application */}
+          <Router />
+          <Toaster />
+        </TooltipProvider>
+      </GameProvider>
     </QueryClientProvider>
   );
 }
