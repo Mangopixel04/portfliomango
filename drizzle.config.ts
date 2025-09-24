@@ -1,3 +1,7 @@
+// Database configuration disabled - this is a frontend-only application
+// Uncomment and configure below if you add a backend in the future
+
+/*
 import { defineConfig } from "drizzle-kit";
 
 if (!process.env.DATABASE_URL) {
@@ -12,3 +16,4 @@ export default defineConfig({
     url: process.env.DATABASE_URL,
   },
 });
+*/
