@@ -8,9 +8,17 @@ import {
   type Skill,
   type InsertSkill,
   type Project,
-  type InsertProject
+  type InsertProject,
+  users,
+  contactMessages,
+  analyticsEvents,
+  skillsData,
+  projects
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { drizzle } from "drizzle-orm/neon-http";
+import { neon } from "@neondatabase/serverless";
+import { eq, desc, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User management
@@ -341,4 +349,257 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Initialize database connection
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL is required");
+}
+
+const sql_connection = neon(process.env.DATABASE_URL);
+const db = drizzle(sql_connection);
+
+export class DatabaseStorage implements IStorage {
+  constructor() {
+    this.initializeDefaultData();
+  }
+
+  private async initializeDefaultData() {
+    try {
+      // Check if skills already exist
+      const existingSkills = await db.select().from(skillsData).limit(1);
+      
+      if (existingSkills.length === 0) {
+        // Initialize with some default skills
+        const defaultSkills = [
+          {
+            name: "3D & WebGL",
+            category: "Frontend",
+            proficiency: 95,
+            technologies: ["Three.js", "WebGL", "Blender", "GSAP"],
+            isVisible: true,
+            sortOrder: 1,
+          },
+          {
+            name: "AI Integration",
+            category: "AI/ML",
+            proficiency: 88,
+            technologies: ["OpenAI API", "TensorFlow.js", "ML5.js"],
+            isVisible: true,
+            sortOrder: 2,
+          },
+          {
+            name: "Frontend",
+            category: "Frontend",
+            proficiency: 98,
+            technologies: ["React", "Next.js", "TypeScript", "Tailwind"],
+            isVisible: true,
+            sortOrder: 3,
+          },
+          {
+            name: "Backend",
+            category: "Backend",
+            proficiency: 92,
+            technologies: ["Node.js", "Python", "PostgreSQL", "Redis"],
+            isVisible: true,
+            sortOrder: 4,
+          },
+        ];
+
+        await db.insert(skillsData).values(defaultSkills);
+      }
+
+      // Check if projects already exist
+      const existingProjects = await db.select().from(projects).limit(1);
+      
+      if (existingProjects.length === 0) {
+        // Initialize with some default projects
+        const defaultProjects = [
+          {
+            title: "3D Analytics Dashboard",
+            description: "Real-time data visualization platform with interactive 3D charts, WebGL rendering, and AI-powered insights.",
+            imageUrl: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400",
+            technologies: ["Three.js", "D3.js", "WebSockets", "AI/ML"],
+            liveUrl: "#",
+            githubUrl: "#",
+            isFeatured: true,
+            sortOrder: 1,
+          },
+          {
+            title: "AI Shopping Experience",
+            description: "Next-generation e-commerce platform with AI product recommendations, voice search, AR try-on features.",
+            imageUrl: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=400",
+            technologies: ["Next.js", "OpenAI", "WebRTC", "AR.js"],
+            liveUrl: "#",
+            caseStudyUrl: "#",
+            isFeatured: true,
+            sortOrder: 2,
+          },
+        ];
+
+        await db.insert(projects).values(defaultProjects);
+      }
+    } catch (error) {
+      console.warn('Failed to initialize default data:', error);
+    }
+  }
+
+  // User methods
+  async getUser(id: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    return result[0];
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.username, username)).limit(1);
+    return result[0];
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    return result[0];
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
+  }
+
+  // Contact message methods
+  async createContactMessage(insertMessage: InsertContactMessage): Promise<ContactMessage> {
+    const result = await db.insert(contactMessages).values(insertMessage).returning();
+    return result[0];
+  }
+
+  async getContactMessages(): Promise<ContactMessage[]> {
+    return await db.select().from(contactMessages).orderBy(desc(contactMessages.createdAt));
+  }
+
+  async getContactMessage(id: string): Promise<ContactMessage | undefined> {
+    const result = await db.select().from(contactMessages).where(eq(contactMessages.id, id)).limit(1);
+    return result[0];
+  }
+
+  async updateContactMessageStatus(id: string, status: string): Promise<ContactMessage | undefined> {
+    const result = await db
+      .update(contactMessages)
+      .set({ status })
+      .where(eq(contactMessages.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Analytics methods
+  async createAnalyticsEvent(insertEvent: InsertAnalyticsEvent): Promise<AnalyticsEvent> {
+    const result = await db.insert(analyticsEvents).values(insertEvent).returning();
+    return result[0];
+  }
+
+  async getAnalyticsEvents(limit = 100): Promise<AnalyticsEvent[]> {
+    return await db
+      .select()
+      .from(analyticsEvents)
+      .orderBy(desc(analyticsEvents.timestamp))
+      .limit(limit);
+  }
+
+  async getAnalyticsMetrics() {
+    const events = await db.select().from(analyticsEvents);
+    const pageViews = events.filter(e => e.eventType === 'page_view').length;
+    const uniqueSessions = new Set(events.map(e => e.sessionId)).size;
+    
+    // Simulate live visitors (in a real app, this would be calculated differently)
+    const liveVisitors = Math.floor(Math.random() * 2000) + 500;
+    
+    // Calculate top pages
+    const pageViewEvents = events.filter(e => e.eventType === 'page_view');
+    const pageCount = new Map<string, number>();
+    
+    pageViewEvents.forEach(event => {
+      try {
+        const data = JSON.parse(event.eventData || '{}');
+        const page = data.page || '/';
+        pageCount.set(page, (pageCount.get(page) || 0) + 1);
+      } catch (e) {
+        // Ignore invalid JSON
+      }
+    });
+
+    const topPages = Array.from(pageCount.entries())
+      .map(([page, views]) => ({ page, views }))
+      .sort((a, b) => b.views - a.views)
+      .slice(0, 5);
+
+    return {
+      liveVisitors,
+      pageViews,
+      uniqueSessions,
+      topPages,
+    };
+  }
+
+  // Skills methods
+  async getSkills(): Promise<Skill[]> {
+    return await db
+      .select()
+      .from(skillsData)
+      .where(eq(skillsData.isVisible, true))
+      .orderBy(skillsData.sortOrder);
+  }
+
+  async createSkill(insertSkill: InsertSkill): Promise<Skill> {
+    const result = await db.insert(skillsData).values(insertSkill).returning();
+    return result[0];
+  }
+
+  async updateSkill(id: string, skillUpdate: Partial<Skill>): Promise<Skill | undefined> {
+    const result = await db
+      .update(skillsData)
+      .set(skillUpdate)
+      .where(eq(skillsData.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteSkill(id: string): Promise<boolean> {
+    const result = await db.delete(skillsData).where(eq(skillsData.id, id)).returning();
+    return result.length > 0;
+  }
+
+  // Projects methods
+  async getProjects(): Promise<Project[]> {
+    return await db.select().from(projects).orderBy(projects.sortOrder);
+  }
+
+  async getFeaturedProjects(): Promise<Project[]> {
+    return await db
+      .select()
+      .from(projects)
+      .where(eq(projects.isFeatured, true))
+      .orderBy(projects.sortOrder);
+  }
+
+  async getProject(id: string): Promise<Project | undefined> {
+    const result = await db.select().from(projects).where(eq(projects.id, id)).limit(1);
+    return result[0];
+  }
+
+  async createProject(insertProject: InsertProject): Promise<Project> {
+    const result = await db.insert(projects).values(insertProject).returning();
+    return result[0];
+  }
+
+  async updateProject(id: string, projectUpdate: Partial<Project>): Promise<Project | undefined> {
+    const result = await db
+      .update(projects)
+      .set(projectUpdate)
+      .where(eq(projects.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteProject(id: string): Promise<boolean> {
+    const result = await db.delete(projects).where(eq(projects.id, id)).returning();
+    return result.length > 0;
+  }
+}
+
+export const storage = new DatabaseStorage();
