@@ -15,6 +15,7 @@ import ScrollIndicator from "@/components/ui/scroll-indicator";
 import ThemeSwitcher from "@/components/ui/theme-switcher";
 import VoiceNavigation from "@/components/ui/voice-navigation";
 import ChatbotWidget from "@/components/ui/chatbot-widget";
+import { AchievementNotificationProvider } from "@/components/ui/achievement-notification-provider";
 
 function Router() {
   // Track page views when routes change
@@ -50,6 +51,7 @@ function App() {
           <ThemeSwitcher />
           <VoiceNavigation />
           <ChatbotWidget />
+          <AchievementNotificationProvider />
           
           {/* Main Application */}
           <Router />

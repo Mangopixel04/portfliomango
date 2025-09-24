@@ -120,6 +120,12 @@ function gameStateReducer(state: GameState, action: GameAction): GameState {
           : 0;
       }
 
+      // Dispatch custom event for achievement notification system
+      const unlockedAchievement = { ...achievement, isUnlocked: true, unlockedAt: new Date() };
+      window.dispatchEvent(new CustomEvent('achievementUnlocked', { 
+        detail: unlockedAchievement 
+      }));
+
       return {
         ...state,
         achievements: updatedAchievements,
@@ -162,6 +168,13 @@ function gameStateReducer(state: GameState, action: GameAction): GameState {
           ...state.unlockedAchievements,
           ...newlyUnlocked.map(a => a.id)
         ];
+
+        // Dispatch custom events for newly unlocked achievements
+        newlyUnlocked.forEach(achievement => {
+          window.dispatchEvent(new CustomEvent('achievementUnlocked', {
+            detail: achievement
+          }));
+        });
 
         return {
           ...state,
