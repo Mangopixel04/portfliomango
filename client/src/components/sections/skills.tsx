@@ -27,7 +27,7 @@ const skills: SkillData[] = [
     percentage: 88,
     icon: Brain,
     color: "text-accent",
-    progressColor: "accent",
+    progressColor: "primary",
     technologies: ["OpenAI API", "TensorFlow.js", "ML5.js"]
   },
   {
@@ -35,7 +35,7 @@ const skills: SkillData[] = [
     percentage: 98,
     icon: () => <span className="text-2xl">⚛️</span>,
     color: "text-green-500",
-    progressColor: "success",
+    progressColor: "primary",
     technologies: ["React", "Next.js", "TypeScript", "Tailwind"]
   },
   {
@@ -43,7 +43,7 @@ const skills: SkillData[] = [
     percentage: 92,
     icon: Server,
     color: "text-purple-500", 
-    progressColor: "secondary",
+    progressColor: "primary",
     technologies: ["Node.js", "Python", "PostgreSQL", "Redis"]
   },
   {
@@ -51,7 +51,7 @@ const skills: SkillData[] = [
     percentage: 85,
     icon: Cloud,
     color: "text-orange-500",
-    progressColor: "warning",
+    progressColor: "primary",
     technologies: ["AWS", "Docker", "Kubernetes", "CI/CD"]
   },
   {
@@ -59,7 +59,7 @@ const skills: SkillData[] = [
     percentage: 90,
     icon: ChartLine,
     color: "text-pink-500",
-    progressColor: "danger",
+    progressColor: "primary",
     technologies: ["D3.js", "Chart.js", "Real-time Data", "WebSockets"]
   }
 ];
@@ -93,7 +93,7 @@ export default function Skills() {
                       size="md"
                       animated={true}
                       glowEffect={true}
-                      particleEffect={skill.percentage >= 95}
+                      particleEffect={true}
                       delay={index * 200}
                       className="mb-4"
                     />
