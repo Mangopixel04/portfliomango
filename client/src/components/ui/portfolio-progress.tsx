@@ -54,7 +54,7 @@ export default function PortfolioProgress({
     if (isInView && animated) {
       const timer = setTimeout(() => {
         const duration = 2000;
-        const interval = 50;
+        const interval = 16; // ~60fps for smoother animation
         const steps = duration / interval;
         const increment = value / steps;
         
@@ -123,7 +123,7 @@ export default function PortfolioProgress({
 
       {/* Progress Bar Container */}
       <div className={cn(
-        "relative w-full bg-muted/30 rounded-full overflow-hidden backdrop-blur-sm border border-muted/50",
+        "relative w-full bg-muted/50 rounded-full overflow-hidden backdrop-blur-sm border border-muted",
         sizeClasses[size]
       )}>
         {/* Background Glow Effect */}
@@ -142,7 +142,7 @@ export default function PortfolioProgress({
           animate={isInView ? { width: `${progressWidth}%` } : { width: 0 }}
           transition={{ 
             duration: 2, 
-            delay: delay,
+            delay: delay / 1000, // Convert to seconds
             ease: [0.25, 0.46, 0.45, 0.94]
           }}
           data-testid="progress-bar"
