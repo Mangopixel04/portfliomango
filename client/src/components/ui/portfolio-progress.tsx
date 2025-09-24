@@ -159,7 +159,7 @@ export default function PortfolioProgress({
             animate={isInView ? { x: "200%" } : {}}
             transition={{ 
               duration: 1.5, 
-              delay: delay + 0.5,
+              delay: delay / 1000 + 0.5,
               repeat: Infinity,
               repeatDelay: 3,
               ease: "easeInOut"
