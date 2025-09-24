@@ -1,30 +1,33 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import MagneticElement from "@/components/ui/magnetic-element";
+import PortfolioProgress from "@/components/ui/portfolio-progress";
 import { Box, Brain, Server, Cloud, ChartLine } from "lucide-react";
-import { useState, useEffect } from "react";
 
-interface Skill {
+interface SkillData {
   name: string;
   percentage: number;
   icon: typeof Box | (() => JSX.Element);
   color: string;
+  progressColor: "primary" | "secondary" | "accent" | "success" | "warning" | "danger";
   technologies: string[];
 }
 
-const skills: Skill[] = [
+const skills: SkillData[] = [
   {
     name: "3D & WebGL",
     percentage: 95,
     icon: Box,
     color: "text-primary",
+    progressColor: "primary",
     technologies: ["Three.js", "WebGL", "Blender", "GSAP"]
   },
   {
-    name: "AI Integration",
+    name: "AI Integration", 
     percentage: 88,
     icon: Brain,
     color: "text-accent",
+    progressColor: "accent",
     technologies: ["OpenAI API", "TensorFlow.js", "ML5.js"]
   },
   {
@@ -32,13 +35,15 @@ const skills: Skill[] = [
     percentage: 98,
     icon: () => <span className="text-2xl">⚛️</span>,
     color: "text-green-500",
+    progressColor: "success",
     technologies: ["React", "Next.js", "TypeScript", "Tailwind"]
   },
   {
     name: "Backend",
     percentage: 92,
     icon: Server,
-    color: "text-purple-500",
+    color: "text-purple-500", 
+    progressColor: "secondary",
     technologies: ["Node.js", "Python", "PostgreSQL", "Redis"]
   },
   {
@@ -46,6 +51,7 @@ const skills: Skill[] = [
     percentage: 85,
     icon: Cloud,
     color: "text-orange-500",
+    progressColor: "warning",
     technologies: ["AWS", "Docker", "Kubernetes", "CI/CD"]
   },
   {
@@ -53,41 +59,12 @@ const skills: Skill[] = [
     percentage: 90,
     icon: ChartLine,
     color: "text-pink-500",
+    progressColor: "danger",
     technologies: ["D3.js", "Chart.js", "Real-time Data", "WebSockets"]
   }
 ];
 
 export default function Skills() {
-  const [animatedPercentages, setAnimatedPercentages] = useState<number[]>(new Array(skills.length).fill(0));
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            // Animate skill bars
-            skills.forEach((skill, index) => {
-              setTimeout(() => {
-                setAnimatedPercentages(prev => {
-                  const newPercentages = [...prev];
-                  newPercentages[index] = skill.percentage;
-                  return newPercentages;
-                });
-              }, index * 200);
-            });
-          }
-        });
-      },
-      { threshold: 0.3 }
-    );
-
-    const skillsSection = document.getElementById('skills');
-    if (skillsSection) {
-      observer.observe(skillsSection);
-    }
-
-    return () => observer.disconnect();
-  }, []);
 
   return (
     <section id="skills" className="py-20 bg-muted/20" data-testid="skills-section">
@@ -106,31 +83,32 @@ export default function Skills() {
                     <div className={`w-16 h-16 bg-current/20 rounded-lg flex items-center justify-center mb-4 ${skill.color}`}>
                       <IconComponent className="h-8 w-8" />
                     </div>
-                    <h3 className="text-xl font-bold mb-4">{skill.name}</h3>
-                    <div className="space-y-3">
-                      <div className="skill-bar">
-                        <div 
-                          className="skill-progress" 
-                          style={{ width: `${animatedPercentages[index]}%` }}
-                          data-testid={`skill-progress-${skill.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
-                        />
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Proficiency</span>
-                        <span className="font-semibold">{animatedPercentages[index]}%</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {skill.technologies.map((tech) => (
-                          <Badge 
-                            key={tech} 
-                            variant="secondary" 
-                            className="text-xs"
-                            data-testid={`tech-badge-${tech.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
-                          >
-                            {tech}
-                          </Badge>
-                        ))}
-                      </div>
+                    <h3 className="text-xl font-bold mb-6">{skill.name}</h3>
+                    
+                    {/* Enhanced Progress Bar */}
+                    <PortfolioProgress
+                      value={skill.percentage}
+                      label="Proficiency"
+                      color={skill.progressColor}
+                      size="md"
+                      animated={true}
+                      glowEffect={true}
+                      particleEffect={skill.percentage >= 95}
+                      delay={index * 200}
+                      className="mb-4"
+                    />
+
+                    <div className="flex flex-wrap gap-1 mt-4">
+                      {skill.technologies.map((tech) => (
+                        <Badge 
+                          key={tech} 
+                          variant="secondary" 
+                          className="text-xs hover:bg-primary/20 transition-colors"
+                          data-testid={`tech-badge-${tech.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
+                        >
+                          {tech}
+                        </Badge>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
